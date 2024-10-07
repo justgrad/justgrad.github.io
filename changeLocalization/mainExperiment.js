@@ -67,6 +67,7 @@ function startBlock() {
     function showInterTrialInterval() {
         mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height); // Clear the canvas
         drawFixationCross(); // Draw the fixation cross
+        fixationStart = Date.now()
 
         // Wait for 500 ms before showing the original array
         setTimeout(showOriginalArray, fixationLength);
@@ -76,12 +77,22 @@ function startBlock() {
     function showOriginalArray() {
         isShowingOriginalArray = true;
         renderStimuli();
-
+        originalArrayTime = Date.now();
+    
+        // Log a deep copy of the original array with initial colors
+        currentTrial.originalStimuli = JSON.parse(JSON.stringify(currentTrial.stimuli));
+    
         setTimeout(() => {
             mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height); // Hide the array
-            setTimeout(showChangedArray, HIDE_DURATION); // Show the changed array after the hide duration
+            clearArrayTime = Date.now(); // Timestamp for when the array is cleared
+    
+            setTimeout(() => {
+                showChangedArray();
+                changedArrayTime = Date.now(); // Timestamp for when the changed array appears
+            }, HIDE_DURATION);
         }, SHOW_DURATION);
     }
+
 
     // Show the changed array
     function showChangedArray() {
@@ -89,8 +100,11 @@ function startBlock() {
         replaceColorInChangedStimulus(); // Replace the color for the changed stimulus
         renderStimuli(); // Render the changed stimuli with the new color
         trialEnded = false; // Reset trial state
-        trialStartTime = Date.now();
+        changedArrayTime = Date.now();
         localStart = getCurrentTime();
+    
+        // Log a deep copy of the changed array after the color modification
+        currentTrial.changedStimuli = JSON.parse(JSON.stringify(currentTrial.stimuli));
     
         // Allow clicks after the changed array is displayed
         mainCanvas.addEventListener('click', handleClick);
@@ -114,42 +128,56 @@ function startBlock() {
 
     // Handle the click to advance the trial and determine if it's correct or not
     function handleClick(event) {
-        if (!trialEnded) {
-            const rect = mainCanvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+        const rect = mainCanvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const clickTime = Date.now(); // Capture time of each click
     
-            clickedCorrectly = false; // Reset to false before each click
+        clickedCorrectly = false; // Reset to false before each click
+        let clickedWithinSquare = false; // Track if the click is within any square
     
-            // Check if the click is within the bounds of any stimulus
-            for (let index = 0; index < currentTrial.stimuli.length; index++) {
-                const stim = currentTrial.stimuli[index];
-                if (isWithinBounds(x, y, stim.xpos, stim.ypos)) {
-                    if (index === currentTrial.changedStimulusIndex) {
-                        clickedCorrectly = true; // Correct if they clicked the changed stimulus
-                    }
-                    break;
+        // Log each click regardless of whether it lands in a square
+        if (!currentTrial.clickLog) currentTrial.clickLog = [];
+        currentTrial.clickLog.push({
+            clickTime: clickTime,
+            x: x,
+            y: y,
+            withinSquare: false, // Initial assumption
+            correct: false // Default to false until we determine correctness
+        });
+    
+        // Check if the click is within the bounds of any stimulus
+        for (let index = 0; index < currentTrial.stimuli.length; index++) {
+            const stim = currentTrial.stimuli[index];
+            if (isWithinBounds(x, y, stim.xpos, stim.ypos)) {
+                clickedWithinSquare = true; // Mark as within a square
+                currentTrial.clickLog[currentTrial.clickLog.length - 1].withinSquare = true; // Update the log entry
+    
+                if (index === currentTrial.changedStimulusIndex) {
+                    clickedCorrectly = true; // Correct if they clicked the changed stimulus
+                    currentTrial.clickLog[currentTrial.clickLog.length - 1].correct = true;
                 }
+                break;
             }
+        }
     
-            if (clickedCorrectly) {
-                correctResponses++;
-                console.log("Correct response!");
-            } else {
-                incorrectResponses++;
-                console.log("Incorrect response!");
-            }
-            trialResult = clickedCorrectly ? 'Correct': 'Error'
+        // Update response counts and trial status if clicked within a square
+        if (clickedWithinSquare) {
+            trialResult = clickedCorrectly ? 'Correct' : 'Error';
+            if (clickedCorrectly) correctResponses++;
+            else incorrectResponses++;
     
             trialEnded = true; // Mark the trial as ended
             trialEndTime = Date.now();
-            localEnd = getCurrentTime();
-            responseTime = trialEndTime - trialStartTime;
+            responseTime = trialEndTime - originalArrayTime;
             mainCanvas.removeEventListener('click', handleClick); // Remove click handler
-            logTrialData(); // Log the trial data, including clickedCorrectly
-            setTimeout(runNextTrial, CHANGE_DURATION); // Advance to the next trial after a short delay
+            logTrialData(); // Log the trial data
+            setTimeout(runNextTrial, CHANGE_DURATION); // Advance to the next trial
+        } else {
+            console.log("Click outside of any square. Trial will not advance.");
         }
     }
+    
 
     // Render stimuli on the canvas
 function renderStimuli() {

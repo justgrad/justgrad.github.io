@@ -87,7 +87,7 @@ function getCurrentTime() {
     const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
   
     return `${hours}:${minutes}:${seconds}.${milliseconds}`;
-  }
+}
 
 function logTrialData() {
     logCounter++;
@@ -95,15 +95,22 @@ function logTrialData() {
         logCounter: logCounter,
         trialNumber: iTrial,
         blockNumber: blockNumber,
-        trialStartTime: localStart, 
-        trialEndTime: localEnd,
-        stimuli: currentTrial,
+        timestamps: {
+            fixationStart: fixationStart,
+            originalArrayTime: originalArrayTime,
+            clearArrayTime: clearArrayTime,
+            changedArrayTime: changedArrayTime,
+            trialEndTime: trialEndTime
+        },
+        originalStimuli: currentTrial.originalStimuli, // Log original array colors
+        changedStimulusIndex: currentTrial.changedStimulusIndex,
+        changedStimuli: currentTrial.changedStimuli,   // Log changed array colors
+        clickLog: currentTrial.clickLog, // Include each click's time and coordinates
         trialResult: trialResult,
-        responseTime: responseTime,
-        //timeOutReached: currentTimeoutId //unique Ids for timeoutIds
+        responseTime: responseTime
     });
-    console.table(trialData)
-}
+    console.table(trialData);
+}   
 
 
 // Check if a new location is adjacent to any previously selected locations
