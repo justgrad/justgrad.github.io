@@ -135,6 +135,7 @@ function startBlock() {
     
         clickedCorrectly = false; // Reset to false before each click
         let clickedWithinSquare = false; // Track if the click is within any square
+        let clickedStimulusIndex = null; // To store the index of the clicked stimulus
     
         // Log each click regardless of whether it lands in a square
         if (!currentTrial.clickLog) currentTrial.clickLog = [];
@@ -151,6 +152,7 @@ function startBlock() {
             const stim = currentTrial.stimuli[index];
             if (isWithinBounds(x, y, stim.xpos, stim.ypos)) {
                 clickedWithinSquare = true; // Mark as within a square
+                clickedStimulusIndex = index; // Store index for drawing the outline
                 currentTrial.clickLog[currentTrial.clickLog.length - 1].withinSquare = true; // Update the log entry
     
                 if (index === currentTrial.changedStimulusIndex) {
@@ -161,22 +163,40 @@ function startBlock() {
             }
         }
     
-        // Update response counts and trial status if clicked within a square
         if (clickedWithinSquare) {
-            trialResult = clickedCorrectly ? 'Correct' : 'Error';
-            if (clickedCorrectly) correctResponses++;
-            else incorrectResponses++;
+            // Draw the red outline around the clicked stimulus
+            drawOutline(currentTrial.stimuli[clickedStimulusIndex]);
     
-            trialEnded = true; // Mark the trial as ended
-            trialEndTime = Date.now();
-            responseTime = trialEndTime - originalArrayTime;
-            mainCanvas.removeEventListener('click', handleClick); // Remove click handler
-            logTrialData(); // Log the trial data
-            setTimeout(runNextTrial, CHANGE_DURATION); // Advance to the next trial
+            // Delay advancing to allow the red outline to be visible
+            setTimeout(() => {
+                trialResult = clickedCorrectly ? 'Correct' : 'Error';
+                if (clickedCorrectly) correctResponses++;
+                else incorrectResponses++;
+    
+                trialEnded = true; // Mark the trial as ended
+                trialEndTime = Date.now();
+                responseTime = trialEndTime - originalArrayTime;
+                mainCanvas.removeEventListener('click', handleClick); // Remove click handler
+                logTrialData(); // Log the trial data
+                runNextTrial(); // Advance to the next trial
+            }, 500); // Adjust the delay duration as needed (500 ms in this example)
         } else {
             console.log("Click outside of any square. Trial will not advance.");
         }
     }
+    
+    // Function to draw a red outline around a clicked stimulus
+    function drawOutline(stim) {
+        mainCtx.strokeStyle = 'rgb(255, 165, 0)'; // Bright orange outline color
+        mainCtx.lineWidth = 3;
+        mainCtx.strokeRect(
+            stim.xpos - CONFIG.stimuli.SQUARE_SIZE / 2,
+            stim.ypos - CONFIG.stimuli.SQUARE_SIZE / 2,
+            CONFIG.stimuli.SQUARE_SIZE,
+            CONFIG.stimuli.SQUARE_SIZE
+        );
+    }
+    
     
 
     // Render stimuli on the canvas
