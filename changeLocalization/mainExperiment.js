@@ -9,7 +9,7 @@ let correctResponses = 0;
 let incorrectResponses = 0;
 let logCounter = 0;
 let blockNumber = 0;
-let numBlocks = 2;
+let numBlocks = 1;
 let subjectId = 'test'
 let trialData = [];
 let expStartTime;
@@ -20,6 +20,9 @@ let iTrial = 0;
 let trials;
 let changedSquare;
 let trialResult
+let numtrials = 3;
+
+let startDate, startTime, experimentStartTime, expTrialsStartTime, expTrialsEndTime;
 
 let fixationLength = 500; // 500 ms fixation
 let SHOW_DURATION = 250; // Time in milliseconds to display the original array
@@ -40,7 +43,7 @@ document.getElementById("startExperimentButton").addEventListener("click", funct
 });
 
 function startBlock() {
-    trials = createTrials(5); // Generate 10 trials
+    trials = createTrials(numtrials); // Generate 10 trials
     iTrial = 0;
     blockNumber++
 
@@ -57,6 +60,9 @@ function startBlock() {
             console.log("Experiment completed");
             console.log(`Correct Responses: ${correctResponses}`);
             console.log(`Incorrect Responses: ${incorrectResponses}`);
+            data.experimentDuration = expEndTime - experimentStartTime;
+            data.experimentEndTime = expEndTime;
+
             console.table(data)
         }
     }

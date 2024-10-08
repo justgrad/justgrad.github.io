@@ -18,6 +18,10 @@ const CONFIG = {
    
 };
 
+// Exp name and notes
+const experimentName = "Change_Loc_Mobile"; // identical to experiment folder name on server
+const version = "v1"; // change version to save data to separate data folder
+
 // Define six fixed locations in a circular pattern around the center of the canvas
 (function generateFixedLocations() {
     const canvas = document.getElementById('canvas');
@@ -69,14 +73,25 @@ function createTrials(numTrials) {
 }
 
 function initializeExperimentData() {
-    expStartTime = Date.now()
+    const start = new Date();
+    const month = start.getMonth() + 1;  // Convert to 1-based month index
+    const pad = num => num.toString().padStart(2, '0'); // Pad single digits
+
+    // Set start date, time, and start time in milliseconds
+    startTime = pad(start.getHours()) + "-" + pad(start.getMinutes()) + "-" + pad(start.getSeconds());
+    startDate = pad(month) + "-" + pad(start.getDate()) + "-" + start.getFullYear();
+    experimentStartTime = Date.now(); // Timestamp for duration calculation
     data =  {
         subjectId: subjectId,
+        startDate: startDate,
+        startTime: startTime,
+        experimentStartTime: experimentStartTime, // When the experiment starts
+        experimentName: experimentName,
+        version: version,
         numBlocks: numBlocks,
         trialData: trialData, // To store data for all trials
-        startTime: expStartTime, // When the experiment starts
-        expDuration: expDuration
     };
+    console.log("Experiment initialized with start time:", startTime, "and date:", startDate);
 }
 
 function getCurrentTime() {
