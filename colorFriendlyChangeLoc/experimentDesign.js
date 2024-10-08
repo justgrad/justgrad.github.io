@@ -19,7 +19,7 @@ const CONFIG = {
 };
 
 // Exp name and notes
-const experimentName = "Change_Loc_Mobile"; // identical to experiment folder name on server
+const experimentName = "Change_Loc_ColorFriendly"; // identical to experiment folder name on server
 const version = "v1"; // change version to save data to separate data folder
 
 // Define six fixed locations in a circular pattern around the center of the canvas
