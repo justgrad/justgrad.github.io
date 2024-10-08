@@ -20,7 +20,7 @@ let iTrial = 0;
 let trials;
 let changedSquare;
 let trialResult
-let numtrials = 3;
+let numtrials = 15;
 
 let startDate, startTime, experimentStartTime, expTrialsStartTime, expTrialsEndTime;
 
